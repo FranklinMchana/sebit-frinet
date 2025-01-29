@@ -13,30 +13,22 @@ try {
         'port' => 8728, // API Port
     ]);
 
-    // Get User MAC Address from HTTP Headers
-    $mac_address = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-
-    if (!$mac_address) {
-        die("MAC Address not found. Ensure you are connecting via a MikroTik Hotspot.");
+    // Get User MAC Address from MikroTik Hotspot Cookies
+    if (!isset($_COOKIE['mac'])) {
+        die("MAC Address not detected. Ensure you are connecting via MikroTik Hotspot.");
     }
 
-    // Check if MAC address exists in MikroTik Hotspot Users
-    $query = (new Query('/ip/hotspot/user/print'))
-        ->where('mac-address', $mac_address);
+    $mac_address = $_COOKIE['mac'];
 
-    $existingUser = $client->query($query)->read();
+    // Auto-login user by adding them to the Hotspot active users list
+    $query = (new Query('/ip/hotspot/active/add'))
+        ->equal('mac-address', $mac_address)
+        ->equal('server', 'hotspot1') // Change to your Hotspot name
+        ->equal('limit-uptime', '30m'); // Set session duration (30 min)
 
-    if (empty($existingUser)) {
-        die("MAC Address not registered. Please contact support.");
-    }
+    $client->query($query)->read();
 
-    // Auto-login the user
-    $login_url = "http://192.168.88.1/login?username=$mac_address";
-
-    // Redirect user to the login page
-    header("Location: $login_url");
-    exit();
-
+    echo "Login successful! You are now connected for 30 minutes.";
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }
