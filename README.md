@@ -9,4 +9,6 @@ document.cookie = "mac=" + document.getElementById("mac").value + "; path=/";
 Set Up Cron Job Run the following command to execute it every 10 minutes:
 */10 * * * * php /path/to/unblock_macs.php
 
+sudo apt install php libapache2-mod-php php-cli php-mysql php-curl php-xml php-gd php-mbstring unzip -y
+
 mysql -u root -p mikrotik_qr < ~/mikrotik_qr/schema.sql
